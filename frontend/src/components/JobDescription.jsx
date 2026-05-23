@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { JOB_API_END_POINT, APPLICATION_API_END_POINT } from "@/utils/constant";
 import { setSingleJob } from "@/redux/jobSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +12,7 @@ import Navbar from "./shared/navbar";
 
 const JobDescription = () => {
     const { id: jobId } = useParams();
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     
     const { singleJob } = useSelector((store) => store.job);
@@ -67,12 +68,16 @@ const JobDescription = () => {
                 const res = await axios.get(`${JOB_API_END_POINT}/get/${jobId}`, { withCredentials: true });
                 if (res.data.success) {
                     dispatch(setSingleJob(res.data.job));
-                    setApplied(res.data.job.applications.some(app => app.applicant === user?._id));
+                    if (user?._id) {
+                        setApplied(res.data.job.applications.some(app => app.applicant === user._id));
+                    } else {
+                        setApplied(false);
+                    }
                 }
-            } catch (e) { 
-                console.error(e); 
-            } finally { 
-                setCheckingStatus(false); 
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setCheckingStatus(false);
             }
         };
         fetchJob();
@@ -94,13 +99,22 @@ const JobDescription = () => {
                                 <Badge className="text-[#7209b7] bg-purple-50 border-none font-bold" variant="outline">{singleJob.salary} LPA</Badge>
                             </div>
                         </div>
-                        <Button 
-                            disabled={isApplied || checkingStatus}
-                            onClick={applyJobHandler}
-                            className={`px-8 py-6 rounded-xl font-bold transition-all shadow-md ${isApplied ? "bg-gray-400 cursor-not-allowed" : "bg-[#7209b7] hover:bg-[#5f079e]"}`}
-                        >
-                            {isApplied ? "Applied" : "Apply Now"}
-                        </Button>
+                        {!user ? (
+                            <Button
+                                onClick={() => navigate("/login")}
+                                className="px-8 py-6 rounded-xl font-bold transition-all shadow-md bg-[#7209b7] hover:bg-[#5f079e]"
+                            >
+                                Login to Apply
+                            </Button>
+                        ) : (
+                            <Button
+                                disabled={isApplied || checkingStatus}
+                                onClick={applyJobHandler}
+                                className={`px-8 py-6 rounded-xl font-bold transition-all shadow-md ${isApplied ? "bg-gray-400 cursor-not-allowed" : "bg-[#7209b7] hover:bg-[#5f079e]"}`}
+                            >
+                                {isApplied ? "Applied" : "Apply Now"}
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -113,8 +127,12 @@ const JobDescription = () => {
 
                     {!aiData ? (
                         <div className="flex flex-col items-start gap-3">
-                            <p className="text-gray-600 text-sm">Compare your profile skills against this job description.</p>
-                            <Button onClick={handleAiMatch} disabled={loadingAI} className="bg-white text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold">
+                            <p className="text-gray-600 text-sm">
+                                {user
+                                    ? "Compare your profile skills against this job description."
+                                    : "Login to compare your profile skills against this job description."}
+                            </p>
+                            <Button onClick={handleAiMatch} disabled={loadingAI || !user} className="bg-white text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold disabled:opacity-50 disabled:cursor-not-allowed">
                                 {loadingAI ? <Loader2 className="animate-spin mr-2" size={16}/> : "Calculate Match Score"}
                             </Button>
                         </div>

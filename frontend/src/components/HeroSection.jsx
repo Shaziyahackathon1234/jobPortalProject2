@@ -10,8 +10,9 @@ const HeroSection = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const searchJobHandler = () => {
-        dispatch(setSearchedQuery(query));
+    const searchJobHandler = (e) => {
+        e?.preventDefault?.();
+        dispatch(setSearchedQuery(query.trim()));
         navigate("/browse");
     };
 
@@ -30,21 +31,25 @@ const HeroSection = () => {
                 </p>
 
                 {/* --- RESPONSIVE SEARCH BAR --- */}
-                <div className="flex w-full md:w-[60%] lg:w-[40%] shadow-lg border border-gray-200 pl-4 rounded-full items-center gap-2 mx-auto bg-white overflow-hidden">
-                    <Search className="h-5 w-5 text-gray-400 shrink-0" /> {/* Added icon inside for better UX */}
+                <form
+                    onSubmit={searchJobHandler}
+                    className="flex w-full md:w-[60%] lg:w-[40%] shadow-lg border border-gray-200 pl-4 rounded-full items-center gap-2 mx-auto bg-white overflow-hidden"
+                >
+                    <Search className="h-5 w-5 text-gray-400 shrink-0" />
                     <input
                         type="text"
                         placeholder="Find your dream jobs"
+                        value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         className="outline-none border-none w-full py-3 text-gray-700"
                     />
                     <Button
-                        onClick={searchJobHandler}
+                        type="submit"
                         className="rounded-r-full bg-[#6A38C2] hover:bg-[#5b30a6] h-full px-6 py-6"
                     >
                         <Search className="h-5 w-5 text-white" />
                     </Button>
-                </div>
+                </form>
             </div>
         </div>
     );

@@ -10,7 +10,7 @@ import { USER_API_END_POINT } from "../../utils/constant.js";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setUser } from "../../redux/authSlice";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -22,6 +22,8 @@ const Login = () => {
         password: "",
         role: "",
     });
+
+    const [showPassword, setShowPassword] = useState(false);
 
     const changeEventHandler = (e) => {
         setInput({ ...input, [e.target.name]: e.target.value });
@@ -72,7 +74,24 @@ const Login = () => {
                         </div>
                         <div>
                             <Label className="mb-2">Password</Label>
-                            <Input type="password" value={input.password} onChange={changeEventHandler} name="password" placeholder="password" />
+                            <div className="relative">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    value={input.password}
+                                    onChange={changeEventHandler}
+                                    name="password"
+                                    placeholder="password"
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-[#6A38C2] transition-colors"
+                                >
+                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                </button>
+                            </div>
                         </div>
 
                         <RadioGroup className="flex items-center gap-6 py-2">

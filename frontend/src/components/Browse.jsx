@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./shared/navbar";
 import Job from "./Job";
-import { useSelector, useDispatch } from "react-redux";
-import { setSearchedQuery } from "@/redux/jobSlice";
+import { useSelector } from "react-redux";
 import useGetAllJobs from "@/hooks/useGetAllJobs";
 
 const Browse = () => {
   useGetAllJobs();
   const { allJobs, searchedQuery } = useSelector((store) => store.job);
-  const dispatch = useDispatch();
   const [filterJobs, setFilterJobs] = useState(allJobs);
 
   useEffect(() => {
@@ -26,12 +24,6 @@ const Browse = () => {
       setFilterJobs(allJobs);
     }
   }, [allJobs, searchedQuery]);
-
-  useEffect(() => {
-    return () => {
-      dispatch(setSearchedQuery(""));
-    };
-  }, [dispatch]);
 
   return (
     <div>
