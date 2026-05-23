@@ -30,7 +30,7 @@ const JobDescription = () => {
         setLoadingAI(true);
         try {
             // Using absolute URL for AI Match to ensure reliability across environments
-            const res = await axios.post(`http://localhost:8000/api/v1/ai/match`, {
+            const res = await axios.post(`http://https://jobportalproject2.onrender.com/api/v1/ai/match`, {
                 resumeSkills: user?.profile?.skills?.join(", "),
                 jobDescription: singleJob?.description
             }, { withCredentials: true });

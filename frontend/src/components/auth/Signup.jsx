@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "../../redux/authSlice";
 import { Loader2 } from "lucide-react";
 import { USER_API_END_POINT } from "../../utils/constant"; 
-// const USER_API_END_POINT = "http://localhost:8000/api/v1/user"; 
+// const USER_API_END_POINT = "http://https://jobportalproject2.onrender.com/api/v1/user"; 
 
 const Signup = () => {
     const navigate = useNavigate();

@@ -2,7 +2,7 @@ const isDevelopment = import.meta.env.MODE === 'development';
 
 // Using relative paths in production allows Render to handle the domain routing
 const BASE_URL = isDevelopment 
-    ? "http://localhost:8000/api/v1" 
+    ? "http://https://jobportalproject2.onrender.com/api/v1" 
     : "/api/v1"; 
 
 export const USER_API_END_POINT = `${BASE_URL}/user`;
