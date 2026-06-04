@@ -33,6 +33,7 @@ const Login = () => {
         e.preventDefault();
         try {
             dispatch(setLoading(true));
+            console.log("Input",input)
             const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
                 headers: { "Content-Type": "application/json" },
                 withCredentials: true,

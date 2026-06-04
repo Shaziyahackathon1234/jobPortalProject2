@@ -13,12 +13,19 @@ import { setUser } from "@/redux/authSlice";
 import { toast } from "sonner";
 import UpdateProfileDialog from "./UpdateProfileDialog";
 import useGetAppliedJobs from "@/hooks/useGetAppliedJobs";
+import RecruiterProfile from "./RecruiterProfile";
 
 const Profile = () => {
     useGetAppliedJobs();
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
     const { user } = useSelector((store) => store.auth);
+
+    // Recruiters get a tailored profile (stats + actions), not the
+    // job-seeker layout with resume/skills.
+    if (user?.role === "recruiter") {
+        return <RecruiterProfile />;
+    }
 
     const isResume = Boolean(user?.profile?.resume);
     const profilePhoto = user?.profile?.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.fullname || "default"}`;

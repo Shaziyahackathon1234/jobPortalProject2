@@ -22,7 +22,11 @@ const CompaniesTable = ({ search }) => {
     company.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const fallbackLogo = "https://toppng.com/uploads/preview/free-logo-design-11551057495oqoep79juj.png";
+  // Generated initials avatar — used when a logo is missing or fails to load.
+  const initialsLogo = (name) =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      name || "Company"
+    )}&background=6A38C2&color=fff&bold=true`;
 
   return (
     <div className="mt-5">
@@ -37,7 +41,12 @@ const CompaniesTable = ({ search }) => {
             <div key={company._id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
               <div className="flex items-center gap-4 mb-3">
                 <Avatar className="h-12 w-12 border">
-                  <AvatarImage src={company.logo || fallbackLogo} />
+                  <AvatarImage
+                    src={company.logo || initialsLogo(company.name)}
+                    onError={(e) => {
+                      e.currentTarget.src = initialsLogo(company.name);
+                    }}
+                  />
                 </Avatar>
                 <div className="flex-1">
                   <h2 className="font-bold text-lg text-gray-800">{company.name}</h2>
@@ -98,7 +107,12 @@ const CompaniesTable = ({ search }) => {
                 <TableRow key={company._id} className="hover:bg-gray-50/50 transition-colors">
                   <TableCell>
                     <Avatar className="h-10 w-10 border">
-                      <AvatarImage src={company.logo || fallbackLogo} />
+                      <AvatarImage
+                    src={company.logo || initialsLogo(company.name)}
+                    onError={(e) => {
+                      e.currentTarget.src = initialsLogo(company.name);
+                    }}
+                  />
                     </Avatar>
                   </TableCell>
                   <TableCell className="font-semibold">{company.name}</TableCell>

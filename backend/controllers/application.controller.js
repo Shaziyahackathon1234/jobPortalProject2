@@ -88,16 +88,23 @@ export const getAppliedJobs = async (req, res) => {
 // --- GET ALL APPLICANTS (Admin/Recruiter View) ---
 export const getApplicants = async (req, res) => {
     try {
+        const jobId = req.params.id;
         const adminId = req.id;
 
-        // 1. Find all jobs created by this specific recruiter
-        const jobs = await Job.find({ created_by: adminId });
-        const jobIds = jobs.map(job => job._id);
+        // 1. Verify the job exists and belongs to this recruiter
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found.", success: false });
+        }
+        if (job.created_by.toString() !== adminId) {
+            return res.status(403).json({
+                message: "You are not authorized to view these applicants.",
+                success: false
+            });
+        }
 
-        // 2. Find applications for those specific jobs
-        const applications = await Application.find({
-            job: { $in: jobIds }
-        })
+        // 2. Find applications for THIS job only
+        const applications = await Application.find({ job: jobId })
             .populate("applicant") // Get user profile details
             .populate({
                 path: "job",

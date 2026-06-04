@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -16,17 +16,30 @@ import {
   Calendar,
   Briefcase,
   Building2,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "sonner";
-import { APPLICATION_API_END_POINT } from "@/utils/constant";
+import { APPLICATION_API_END_POINT, AI_API_END_POINT } from "@/utils/constant";
 import { Badge } from "../ui/badge";
 
 const shortlistingStatus = ["Accepted", "Rejected"];
 
+// Color the score so recruiters can scan fit at a glance.
+const scoreClasses = (score) =>
+  score >= 70
+    ? "bg-green-100 text-green-700"
+    : score >= 40
+      ? "bg-amber-100 text-amber-700"
+      : "bg-red-100 text-red-700";
+
 const ApplicantsTable = () => {
   const { applicants } = useSelector((store) => store.application);
+  const [aiResults, setAiResults] = useState({}); // { [appId]: {score, feedback, missingSkills} | "error" }
+  const [aiLoading, setAiLoading] = useState({}); // { [appId]: boolean }
+  const startedRef = useRef(new Set()); // app ids we've already kicked off
 
   const statusHandler = async (status, id) => {
     try {
@@ -41,6 +54,119 @@ const ApplicantsTable = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
+    }
+  };
+
+  // Score one applicant's skills against the job description via the AI endpoint.
+  // Runs quietly (no toasts) since it fires automatically for every row.
+  const runAiMatch = async (item) => {
+    const id = item?._id;
+    const skills = item?.applicant?.profile?.skills;
+    if (!skills || skills.length === 0 || !item?.job?.description) {
+      setAiResults((prev) => ({ ...prev, [id]: "na" }));
+      return;
+    }
+
+    setAiLoading((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await axios.post(
+        `${AI_API_END_POINT}/match`,
+        {
+          resumeSkills: Array.isArray(skills) ? skills.join(", ") : skills,
+          jobDescription: item?.job?.description,
+        },
+        { withCredentials: true, timeout: 60000 },
+      );
+      if (res.data.success) {
+        setAiResults((prev) => ({ ...prev, [id]: res.data.data }));
+      }
+    } catch (error) {
+      console.log("AI match error:", error);
+      setAiResults((prev) => ({ ...prev, [id]: "error" }));
+    } finally {
+      setAiLoading((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  // Auto-run the match for each applicant once, sequentially, so we don't
+  // blast the AI API / a cold-started server with parallel requests.
+  useEffect(() => {
+    if (!applicants || applicants.length === 0) return;
+    let cancelled = false;
+
+    (async () => {
+      for (const item of applicants) {
+        const id = item?._id;
+        if (!id || startedRef.current.has(id)) continue;
+        startedRef.current.add(id);
+        if (cancelled) return;
+        await runAiMatch(item);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [applicants]);
+
+  // Renders a spinner, the score badge + popover, or a graceful fallback.
+  const renderAiMatch = (item) => {
+    const id = item?._id;
+    const loading = aiLoading[id];
+    const result = aiResults[id];
+
+    if (loading || result === undefined) {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-purple-600 font-medium">
+          <Loader2 size={14} className="animate-spin" /> Analyzing…
+        </span>
+      );
+    }
+
+    if (result === "na") {
+      return <span className="text-gray-400 text-xs italic">No skills</span>;
+    }
+
+    if (result === "error") {
+      return <span className="text-gray-400 text-xs italic">Unavailable</span>;
+    }
+
+    {
+      return (
+        <Popover>
+          <PopoverTrigger className="cursor-pointer">
+            <Badge
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-full border-none ${scoreClasses(
+                result.score,
+              )}`}
+            >
+              {result.score}% match
+            </Badge>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-3" align="end">
+            <div className="flex items-center gap-1.5 mb-2 font-semibold text-purple-700">
+              <Sparkles size={14} /> AI Assessment
+            </div>
+            <p className="text-xs text-gray-600 mb-2">{result.feedback}</p>
+            {Array.isArray(result.missingSkills) &&
+              result.missingSkills.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-semibold text-gray-500 mb-1">
+                    Missing skills:
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {result.missingSkills.map((skill, i) => (
+                      <span
+                        key={i}
+                        className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </PopoverContent>
+        </Popover>
+      );
     }
   };
 
@@ -96,6 +222,9 @@ const ApplicantsTable = () => {
                 </div>
               </div>
 
+              {/* AI match helper for recruiters */}
+              <div className="mb-4">{renderAiMatch(item)}</div>
+
               <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                 {item?.applicant?.profile?.resume ? (
                   <a
@@ -145,6 +274,7 @@ const ApplicantsTable = () => {
               <TableHead>Company</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Resume</TableHead>
+              <TableHead>AI Match</TableHead>
               <TableHead>Date</TableHead>
               <TableHead className="text-right pr-6">Action</TableHead>
             </TableRow>
@@ -179,6 +309,7 @@ const ApplicantsTable = () => {
                       <span className="text-gray-400 italic">NA</span>
                     )}
                   </TableCell>
+                  <TableCell>{renderAiMatch(item)}</TableCell>
                   <TableCell>{item?.createdAt?.split("T")[0]}</TableCell>
                   <TableCell className="text-right pr-6">
                     <div className="flex items-center justify-end gap-3">
@@ -222,7 +353,7 @@ const ApplicantsTable = () => {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center py-10 text-gray-500"
                 >
                   No applicants found.

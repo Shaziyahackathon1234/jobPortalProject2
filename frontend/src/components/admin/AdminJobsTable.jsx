@@ -44,7 +44,16 @@ const AdminJobsTable = ({ search }) => {
                             <div className="flex items-center gap-4">
                                 {/* Company Logo / Icon */}
                                 <Avatar className="h-12 w-12 border border-gray-50">
-                                    <AvatarImage src={job?.company?.logo} alt={job?.company?.name} />
+                                    <AvatarImage
+                                        src={
+                                            job?.company?.logo ||
+                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(job?.company?.name || "Company")}&background=6A38C2&color=fff&bold=true`
+                                        }
+                                        alt={job?.company?.name}
+                                        onError={(e) => {
+                                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job?.company?.name || "Company")}&background=6A38C2&color=fff&bold=true`;
+                                        }}
+                                    />
                                 </Avatar>
 
                                 <div>

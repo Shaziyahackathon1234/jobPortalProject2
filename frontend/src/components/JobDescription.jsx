@@ -3,7 +3,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { JOB_API_END_POINT, APPLICATION_API_END_POINT } from "@/utils/constant";
+import { JOB_API_END_POINT, APPLICATION_API_END_POINT, AI_API_END_POINT } from "@/utils/constant";
 import { setSingleJob } from "@/redux/jobSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -29,8 +29,7 @@ const JobDescription = () => {
 
         setLoadingAI(true);
         try {
-            // Using absolute URL for AI Match to ensure reliability across environments
-            const res = await axios.post(`http://https://jobportalproject2.onrender.com/api/v1/ai/match`, {
+            const res = await axios.post(`${AI_API_END_POINT}/match`, {
                 resumeSkills: user?.profile?.skills?.join(", "),
                 jobDescription: singleJob?.description
             }, { withCredentials: true });

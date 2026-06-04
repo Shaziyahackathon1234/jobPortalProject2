@@ -1,6 +1,7 @@
 import { Company } from "../models/company.model.js";
 import cloudinary from "../utils/cloudinary.js";
 import getDataUri from "../utils/datauri.js";
+import { resolveCompanyLogo } from "../utils/companyLogo.js";
 import mongoose from "mongoose";
 
 
@@ -146,6 +147,16 @@ export const updateCompany = async (req, res) => {
         };
         if (logo) {
             updateData.logo = logo;
+        } else {
+            // No logo uploaded — if the company doesn't already have one,
+            // auto-set it by AI-matching the company name (or its website).
+            const existing = await Company.findById(req.params.id);
+            if (existing && !existing.logo) {
+                updateData.logo = await resolveCompanyLogo(
+                    name || existing.name,
+                    website || existing.website
+                );
+            }
         }
 
         const company = await Company.findByIdAndUpdate(

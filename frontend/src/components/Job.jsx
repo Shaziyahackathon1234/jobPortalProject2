@@ -18,10 +18,13 @@ const Job = ({ job }) => {
     return Math.floor(timeDifference / (1000 * 60 * 60 * 24));
   };
 
+  const handleDetailsClick = () => {
+    navigate(`/description/${job?._id}`);
+  };
+
   const handleApplyClick = () => {
     if (!user) {
-      // Prompt to login/signup if they try to interact
-      alert("Please login or signup to view details and apply!");
+      alert("Please login or signup to apply!");
       navigate("/login");
     } else {
       navigate(`/description/${job?._id}`);
@@ -45,7 +48,13 @@ const Job = ({ job }) => {
         <Button className="p-6" variant="outline" size="icon">
           <Avatar>
             <AvatarImage
-              src={job?.company?.logo || "https://toppng.com/uploads/preview/free-logo-design-11551057495oqoep79juj.png"}
+              src={
+                job?.company?.logo ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(job?.company?.name || "Company")}&background=6A38C2&color=fff&bold=true`
+              }
+              onError={(e) => {
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job?.company?.name || "Company")}&background=6A38C2&color=fff&bold=true`;
+              }}
             />
           </Avatar>
         </Button>
@@ -60,7 +69,7 @@ const Job = ({ job }) => {
         <p className="text-sm text-gray-600 line-clamp-2">{job?.description}</p>
       </div>
 
-      <div className="flex items-center gap-2 mt-4">
+      <div className="flex flex-wrap items-center gap-2 mt-4">
         <Badge className="text-blue-700 font-bold" variant="ghost">
           {job?.position} Positions
         </Badge>
@@ -72,9 +81,9 @@ const Job = ({ job }) => {
         </Badge>
       </div>
 
-      <div className="flex items-center gap-4 mt-4">
+      <div className="flex flex-wrap items-center gap-4 mt-4">
         <Button
-          onClick={handleApplyClick}
+          onClick={handleDetailsClick}
           variant="outline"
         >
           Details
