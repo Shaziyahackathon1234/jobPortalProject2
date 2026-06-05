@@ -12,6 +12,7 @@ import CompanySetup from "./components/admin/CompanySetup.jsx";
 import AdminJobs from "./components/admin/AdminJobs.jsx";
 import PostJob from "./components/admin/PostJob.jsx";
 import Applicants from "./components/admin/Applicants.jsx";
+import AllApplications from "./components/admin/AllApplications.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute.jsx";
 import AppliedJobs from "./components/AppliedJobs.jsx";
 
@@ -30,6 +31,7 @@ const appRouter = createBrowserRouter([
   { path: "/admin/companies/create", element: <ProtectedRoute><CompanyCreate /></ProtectedRoute> },
   { path: "/admin/companies/:id", element: <ProtectedRoute><CompanySetup /></ProtectedRoute> },
   { path: "/admin/jobs", element: <ProtectedRoute><AdminJobs /></ProtectedRoute> },
+  { path: "/admin/applications", element: <ProtectedRoute><AllApplications /></ProtectedRoute> },
   { path: "/admin/jobs/create", element: <ProtectedRoute><PostJob /></ProtectedRoute> },
   { path: "/admin/jobs/:id", element: <ProtectedRoute><PostJob /></ProtectedRoute> },
   // ✅ Kept only one instance of the applicants route

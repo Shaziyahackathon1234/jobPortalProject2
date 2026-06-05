@@ -125,6 +125,34 @@ export const getApplicants = async (req, res) => {
     }
 };
 
+// --- GET ALL APPLICATIONS ACROSS A RECRUITER'S JOBS (Applications tab) ---
+export const getAllApplicants = async (req, res) => {
+    try {
+        const adminId = req.id;
+
+        // All jobs created by this recruiter
+        const jobs = await Job.find({ created_by: adminId });
+        const jobIds = jobs.map(job => job._id);
+
+        // Every application to any of those jobs (with contact details)
+        const applications = await Application.find({ job: { $in: jobIds } })
+            .populate("applicant") // fullname, email, phoneNumber, profile
+            .populate({
+                path: "job",
+                populate: { path: "company" }
+            })
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            applications,
+            success: true
+        });
+    } catch (error) {
+        console.error("Error in getAllApplicants:", error);
+        return res.status(500).json({ message: "Internal Server Error", success: false });
+    }
+};
+
 // --- UPDATE APPLICATION STATUS (Admin Only) ---
 export const updateStatus = async (req, res) => {
     try {
