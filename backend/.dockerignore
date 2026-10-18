@@ -1,0 +1,7 @@
+# Never copy these into the image
+node_modules
+npm-debug.log
+.env
+.env.*
+.DS_Store
+.git
